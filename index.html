@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <!-- SheetJS para procesar archivos Excel/CSV -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- ExcelJS para exportar con estilos visuales -->
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLOQUEO SNL</title>
+    <style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f7f7f9;
+    }
+    .titulo-snl {
+        color: #003366;
+        font-size: 2rem;
+        font-weight: 600;
+        text-align: center;
+        margin-top: 32px;
+        margin-bottom: 24px;
+        text-decoration: underline 3px #0072c6;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .recuadro-derecha {
+        display: flex;
+        justify-content: flex-end;
+        margin: 32px 40px 0 0;
+    }
+    .tabla-formulario {
+        background: #fff;
+        border: 1.5px solid #0072c6;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px #00336622;
+        padding: 20px 10px 14px 10px;
+        min-width: 1600px; /* aumentado */
+        max-width: 99vw;
+        overflow-x: auto;
+        font-size: 0.98em; /* ligeramente mayor */
+    }
+    .tabla-formulario table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 1500px; /* aumentado */
+    }
+    .tabla-formulario th, .tabla-formulario td {
+        border: 1px solid #b0b0b0;
+        padding: 7px 10px; /* más espacio */
+        text-align: left;
+        font-size: 1em; /* más grande */
+    }
+    .tabla-formulario th {
+        background: #e6f0fa;
+        color: #003366;
+        font-weight: 600;
+    }
+    /* Nota rápida flotante */
+    .nota-flotante-btn {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        z-index: 1001;
+        background: #ffc107;
+        color: #333;
+        border: none;
+        border-radius: 50%;
+        width: 52px;
+        height: 52px;
+        font-size: 2em;
+        box-shadow: 0 2px 8px #0002;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .nota-flotante-btn:hover {
+        background: #ffecb3;
+    }
+    .nota-flotante {
+        position: fixed;
+        bottom: 100px;
+        right: 32px;
+        z-index: 1002;
+        background: #fffbe7;
+        border: 1.5px solid #ffc107;
+        border-radius: 10px;
+        box-shadow: 0 4px 16px #0003;
+        width: 320px;
+        min-height: 160px;
+        max-height: 340px;
+        display: flex;
+        flex-direction: column;
+        padding: 14px 14px 10px 14px;
+        font-size: 1em;
+        resize: both;
+    }
+    .nota-flotante textarea {
+        width: 100%;
+        height: 120px;
+        border: none;
+        background: transparent;
+        resize: none;
+        font-size: 1em;
+        color: #333;
+        outline: none;
+        font-family: inherit;
+    }
+    .nota-flotante-cerrar {
+        align-self: flex-end;
+        background: none;
+        border: none;
+        font-size: 1.2em;
+        color: #888;
+        cursor: pointer;
+        margin-bottom: 4px;
+    }
+    .nota-flotante-cerrar:hover {
+        color: #dc3545;
+    }
+    </style>
+</head>
+<body>
+    <!-- Tabs Navegables -->
+    <div style="width:100%; max-width:1800px; margin:auto;"> <!-- aumentado -->
+      <div id="tabs-snl" style="display:flex; border-bottom:2px solid #0072c6; margin-bottom:18px;">
+        <button class="tab-btn" data-tab="1" style="flex:1; padding:14px 0; font-size:1.1em; background:#e6f0fa; color:#003366; border:none; border-right:1px solid #b0b0b0; cursor:pointer; font-weight:600;">BLOQUEO SNL 1</button>
+        <button class="tab-btn" data-tab="2" style="flex:1; padding:14px 0; font-size:1.1em; background:#f7f7f9; color:#003366; border:none; border-right:1px solid #b0b0b0; cursor:pointer; font-weight:600;">BLOQUEO SNL 2</button>
+        <button class="tab-btn" data-tab="3" style="flex:1; padding:14px 0; font-size:1.1em; background:#f7f7f9; color:#003366; border:none; border-right:1px solid #b0b0b0; cursor:pointer; font-weight:600;">BLOQUEO SNL 3</button>
+        <button class="tab-btn" data-tab="4" style="flex:1; padding:14px 0; font-size:1.1em; background:#f7f7f9; color:#003366; border:none; border-right:1px solid #b0b0b0; cursor:pointer; font-weight:600;">BLOQUEO SNL 4</button>
+        <button class="tab-btn" data-tab="5" style="flex:1; padding:14px 0; font-size:1.1em; background:#f7f7f9; color:#003366; border:none; cursor:pointer; font-weight:600;">BLOQUEO SNL 5</button>
+      </div>
+      <div id="tab-content-1" class="tab-content">
+        <!-- ...contenido BLOQUEO SNL 1... -->
+        <div class="titulo-snl">BLOQUEO SNL 1</div>
+        <div style="display: flex; justify-content: flex-end; margin: 0 40px 16px 0;">
+            <form id="import-form-1">
+                <input id="file-input-1" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" style="padding: 6px; border-radius: 4px; border: 1px solid #b0b0b0;" />
+                <button type="button" id="import-btn-1" style="background: #0072c6; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Importar planilla</button>
+                <button type="button" id="export-btn-1" style="background: #28a745; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Exportar a Excel</button>
+                <button type="button" id="clear-btn-1" style="background: #dc3545; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Limpiar todo</button>
+                <span id="file-name-1" style="margin-left: 16px; color: #0072c6; font-size: 0.95em;"></span>
+            </form>
+        </div>
+        <div class="recuadro-derecha">
+            <div class="tabla-formulario">
+                <table id="tabla-1">
+                    <tr>
+                        <th>Centro</th>
+                        <th>Área</th>
+                        <th>Profesional/Recurso</th>
+                        <th>No. Documento Profesional</th>
+                        <th>Especialidad</th>
+                        <th>Servicio</th>
+                        <th>Fecha desde</th>
+                        <th>Hora desde</th>
+                        <th>Estado</th>
+                        <th>No. Documento Paciente</th>
+                        <th>Paciente</th>
+                        <th>Tel. Principal Paciente</th>
+                        <th>Plan de Salud utilizado</th>
+                        <th>Estado de Llamada</th>
+                        <th>Hora 1er Intento</th>
+                        <th>Hora 2do Intento</th>
+                        <th>Hora 3er Intento</th>
+                        <th>Observación</th>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+      </div>
+      <div id="tab-content-2" class="tab-content" style="display:none;">
+        <!-- ...contenido BLOQUEO SNL 2... -->
+        <div class="titulo-snl">BLOQUEO SNL 2</div>
+        <div style="display: flex; justify-content: flex-end; margin: 0 40px 16px 0;">
+            <form id="import-form-2">
+                <input id="file-input-2" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" style="padding: 6px; border-radius: 4px; border: 1px solid #b0b0b0;" />
+                <button type="button" id="import-btn-2" style="background: #0072c6; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Importar planilla</button>
+                <button type="button" id="export-btn-2" style="background: #28a745; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Exportar a Excel</button>
+                <button type="button" id="clear-btn-2" style="background: #dc3545; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Limpiar todo</button>
+                <span id="file-name-2" style="margin-left: 16px; color: #0072c6; font-size: 0.95em;"></span>
+            </form>
+        </div>
+        <div class="recuadro-derecha">
+            <div class="tabla-formulario">
+                <table id="tabla-2">
+                    <tr>
+                        <th>Centro</th>
+                        <th>Área</th>
+                        <th>Profesional/Recurso</th>
+                        <th>No. Documento Profesional</th>
+                        <th>Especialidad</th>
+                        <th>Servicio</th>
+                        <th>Fecha desde</th>
+                        <th>Hora desde</th>
+                        <th>Estado</th>
+                        <th>No. Documento Paciente</th>
+                        <th>Paciente</th>
+                        <th>Tel. Principal Paciente</th>
+                        <th>Plan de Salud utilizado</th>
+                        <th>Estado de Llamada</th>
+                        <th>Hora 1er Intento</th>
+                        <th>Hora 2do Intento</th>
+                        <th>Hora 3er Intento</th>
+                        <th>Observación</th>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+      </div>
+      <div id="tab-content-3" class="tab-content" style="display:none;">
+        <!-- ...contenido BLOQUEO SNL 3... -->
+        <div class="titulo-snl">BLOQUEO SNL 3</div>
+        <div style="display: flex; justify-content: flex-end; margin: 0 40px 16px 0;">
+            <form id="import-form-3">
+                <input id="file-input-3" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" style="padding: 6px; border-radius: 4px; border: 1px solid #b0b0b0;" />
+                <button type="button" id="import-btn-3" style="background: #0072c6; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Importar planilla</button>
+                <button type="button" id="export-btn-3" style="background: #28a745; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Exportar a Excel</button>
+                <button type="button" id="clear-btn-3" style="background: #dc3545; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Limpiar todo</button>
+                <span id="file-name-3" style="margin-left: 16px; color: #0072c6; font-size: 0.95em;"></span>
+            </form>
+        </div>
+        <div class="recuadro-derecha">
+            <div class="tabla-formulario">
+                <table id="tabla-3">
+                    <tr>
+                        <th>Centro</th>
+                        <th>Área</th>
+                        <th>Profesional/Recurso</th>
+                        <th>No. Documento Profesional</th>
+                        <th>Especialidad</th>
+                        <th>Servicio</th>
+                        <th>Fecha desde</th>
+                        <th>Hora desde</th>
+                        <th>Estado</th>
+                        <th>No. Documento Paciente</th>
+                        <th>Paciente</th>
+                        <th>Tel. Principal Paciente</th>
+                        <th>Plan de Salud utilizado</th>
+                        <th>Estado de Llamada</th>
+                        <th>Hora 1er Intento</th>
+                        <th>Hora 2do Intento</th>
+                        <th>Hora 3er Intento</th>
+                        <th>Observación</th>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+      </div>
+      <div id="tab-content-4" class="tab-content" style="display:none;">
+        <div class="titulo-snl">BLOQUEO SNL 4</div>
+        <div style="display: flex; justify-content: flex-end; margin: 0 40px 16px 0;">
+            <form id="import-form-4">
+                <input id="file-input-4" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" style="padding: 6px; border-radius: 4px; border: 1px solid #b0b0b0;" />
+                <button type="button" id="import-btn-4" style="background: #0072c6; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Importar planilla</button>
+                <button type="button" id="export-btn-4" style="background: #28a745; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Exportar a Excel</button>
+                <button type="button" id="clear-btn-4" style="background: #dc3545; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Limpiar todo</button>
+                <span id="file-name-4" style="margin-left: 16px; color: #0072c6; font-size: 0.95em;"></span>
+            </form>
+        </div>
+        <div class="recuadro-derecha">
+            <div class="tabla-formulario">
+                <table id="tabla-4">
+                    <tr>
+                        <th>Centro</th>
+                        <th>Área</th>
+                        <th>Profesional/Recurso</th>
+                        <th>No. Documento Profesional</th>
+                        <th>Especialidad</th>
+                        <th>Servicio</th>
+                        <th>Fecha desde</th>
+                        <th>Hora desde</th>
+                        <th>Estado</th>
+                        <th>No. Documento Paciente</th>
+                        <th>Paciente</th>
+                        <th>Tel. Principal Paciente</th>
+                        <th>Plan de Salud utilizado</th>
+                        <th>Estado de Llamada</th>
+                        <th>Hora 1er Intento</th>
+                        <th>Hora 2do Intento</th>
+                        <th>Hora 3er Intento</th>
+                        <th>Observación</th>
+                    </tr>
+                    <tr>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+      </div>
+      <div id="tab-content-5" class="tab-content" style="display:none;">
+        <div class="titulo-snl">BLOQUEO SNL 5</div>
+        <div style="display: flex; justify-content: flex-end; margin: 0 40px 16px 0;">
+            <form id="import-form-5">
+                <input id="file-input-5" type="file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" style="padding: 6px; border-radius: 4px; border: 1px solid #b0b0b0;" />
+                <button type="button" id="import-btn-5" style="background: #0072c6; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Importar planilla</button>
+                <button type="button" id="export-btn-5" style="background: #28a745; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Exportar a Excel</button>
+                <button type="button" id="clear-btn-5" style="background: #dc3545; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 1em; cursor: pointer; margin-left: 10px;">Limpiar todo</button>
+                <span id="file-name-5" style="margin-left: 16px; color: #0072c6; font-size: 0.95em;"></span>
+            </form>
+        </div>
+        <div class="recuadro-derecha">
+            <div class="tabla-formulario">
+                <table id="tabla-5">
+                    <tr>
+                        <th>Centro</th>
+                        <th>Área</th>
+                        <th>Profesional/Recurso</th>
+                        <th>No. Documento Profesional</th>
+                        <th>Especialidad</th>
+                        <th>Servicio</th>
+                        <th>Fecha desde</th>
+                        <th>Hora desde</th>
+                        <th>Estado</th>
+                        <th>No. Documento Paciente</th>
+                        <th>Paciente</th>
+                        <th>Tel. Principal Paciente</th>
+                        <th>Plan de Salud utilizado</th>
+                        <th>Estado de Llamada</th>
+                        <th>Hora 1er Intento</th>
+                        <th>Hora 2do Intento</th>
+                        <th>Hora 3er Intento</th>
+                        <th>Observación</th>
+                    </tr>
+                    <tr>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        // Tabs Navegables
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tab = btn.getAttribute('data-tab');
+                    tabBtns.forEach(b => {
+                        b.style.background = '#f7f7f9';
+                    });
+                    btn.style.background = '#e6f0fa';
+                    tabContents.forEach(tc => {
+                        tc.style.display = 'none';
+                    });
+                    document.getElementById('tab-content-' + tab).style.display = 'block';
+                });
+            });
+            // Activar la primera pestaña por defecto
+            tabBtns[0].click();
+        });
+
+        function setupBloqueoSNL(sufijo) {
+        const clearBtn = document.getElementById('clear-btn-' + sufijo);
+        clearBtn.addEventListener('click', function() {
+            // Limpiar filas de la tabla (excepto encabezado)
+            while(tabla.rows.length > 1) tabla.deleteRow(1);
+            // Limpiar nombre de archivo
+            fileNameSpan.textContent = '';
+            // Limpiar input file
+            fileInput.value = '';
+        });
+        const exportBtn = document.getElementById('export-btn-' + sufijo);
+        const fileInput = document.getElementById('file-input-' + sufijo);
+        const fileNameSpan = document.getElementById('file-name-' + sufijo);
+        const importBtn = document.getElementById('import-btn-' + sufijo);
+        const tabla = document.getElementById('tabla-' + sufijo);
+
+        fileInput.addEventListener('change', function() {
+            if (fileInput.files.length > 0) {
+                fileNameSpan.textContent = 'Archivo seleccionado: ' + fileInput.files[0].name;
+            } else {
+                fileNameSpan.textContent = '';
+            }
+        });
+
+        importBtn.addEventListener('click', function() {
+            if (!fileInput.files.length) {
+                alert('Por favor seleccione un archivo.');
+                return;
+            }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let data = new Uint8Array(e.target.result);
+                let workbook = XLSX.read(data, {type: 'array'});
+                let firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                let rows = XLSX.utils.sheet_to_json(firstSheet, {header:1});
+                // Limpiar filas existentes (excepto encabezado)
+                while(tabla.rows.length > 1) tabla.deleteRow(1);
+                // Agregar filas
+                for(let i=1; i<rows.length; i++) {
+                    let row = rows[i];
+                    let tr = document.createElement('tr');
+                    for(let j=0; j<18; j++) {
+                        let td = document.createElement('td');
+                        // Normalizar Fecha desde (índice 6) editable (fecha y hora)
+                        if(j === 6) {
+                            // Fecha desde (sumar un día si viene dato, editable)
+                            let fecha = row[j];
+                            let fechaObj = null;
+                            if(fecha !== undefined && fecha !== "") {
+                                if(typeof fecha === 'number') {
+                                    let excelEpoch = new Date(Date.UTC(1899, 11, 30));
+                                    excelEpoch.setDate(excelEpoch.getDate() + Math.floor(fecha) + 1); // Sumar un día
+                                    fechaObj = excelEpoch;
+                                } else if(typeof fecha === 'string') {
+                                    let d = new Date(fecha);
+                                    if(!isNaN(d)) {
+                                        d.setDate(d.getDate() + 1); // Sumar un día
+                                        fechaObj = d;
+                                    }
+                                }
+                            }
+                            // Crear input de fecha
+                            const inputFecha = document.createElement('input');
+                            inputFecha.type = 'date';
+                            inputFecha.style.width = '120px';
+                            if(fechaObj) {
+                                // Formato yyyy-mm-dd
+                                let yyyy = fechaObj.getFullYear();
+                                let mm = String(fechaObj.getMonth()+1).padStart(2,'0');
+                                let dd = String(fechaObj.getDate()).padStart(2,'0');
+                                inputFecha.value = `${yyyy}-${mm}-${dd}`;
+                            } else {
+                                inputFecha.value = '';
+                            }
+                            // Crear input de hora
+                            const inputHora = document.createElement('input');
+                            inputHora.type = 'time';
+                            inputHora.style.width = '80px';
+                            // Si la hora viene en la columna 7, usarla
+                            let horaValor = row[7];
+                            if(horaValor !== undefined && horaValor !== "") {
+                                if(typeof horaValor === 'number') {
+                                    let totalMinutes = Math.round(horaValor * 24 * 60);
+                                    let hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+                                    let mm = String(totalMinutes % 60).padStart(2, '0');
+                                    inputHora.value = `${hh}:${mm}`;
+                                } else if(typeof horaValor === 'string') {
+                                    let match = horaValor.match(/(\d{1,2}):(\d{2})/);
+                                    if(match) {
+                                        inputHora.value = match[0];
+                                    } else {
+                                        let d = new Date(horaValor);
+                                        if(!isNaN(d)) {
+                                            let hh = String(d.getHours()).padStart(2, '0');
+                                            let mm = String(d.getMinutes()).padStart(2, '0');
+                                            inputHora.value = `${hh}:${mm}`;
+                                        } else {
+                                            inputHora.value = '';
+                                        }
+                                    }
+                                } else {
+                                    inputHora.value = '';
+                                }
+                            } else {
+                                inputHora.value = '';
+                            }
+                            td.appendChild(inputFecha);
+                            td.appendChild(inputHora);
+                        } else if(j === 7 && row[j] !== undefined && row[j] !== "") {
+                            // Hora desde
+                            let hora = row[j];
+                            let horaStr = '';
+                            if(typeof hora === 'number') {
+                                // Si es número, puede ser fracción de día (Excel)
+                                let totalMinutes = Math.round(hora * 24 * 60);
+                                let hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+                                let mm = String(totalMinutes % 60).padStart(2, '0');
+                                horaStr = `${hh}:${mm}`;
+                            } else if(typeof hora === 'string') {
+                                // Buscar patrón HH:MM
+                                let match = hora.match(/(\d{1,2}):(\d{2})/);
+                                if(match) {
+                                    horaStr = match[0];
+                                } else {
+                                    // Intentar parsear como fecha
+                                    let d = new Date(hora);
+                                    if(!isNaN(d)) {
+                                        let hh = String(d.getHours()).padStart(2, '0');
+                                        let mm = String(d.getMinutes()).padStart(2, '0');
+                                        horaStr = `${hh}:${mm}`;
+                                    } else {
+                                        horaStr = hora;
+                                    }
+                                }
+                            } else {
+                                horaStr = hora;
+                            }
+                            td.textContent = horaStr;
+                        }
+                        // Columna 13: Estado de Llamada (índice 13)
+                        else if(j === 13) {
+                            let select = document.createElement('select');
+                            select.style.width = '100%';
+                            // Primera opción en blanco
+                            let opciones = ['', 'CONTACTADO', 'NO CONTACTADO'];
+                            opciones.forEach(function(opcion) {
+                                let opt = document.createElement('option');
+                                opt.value = opcion;
+                                opt.textContent = opcion === '' ? '' : opcion;
+                                select.appendChild(opt);
+                            });
+                            // Seleccionar valor si viene en la planilla, si no, queda en blanco
+                            if(row[j] && opciones.includes(row[j].toString().toUpperCase())) {
+                                select.value = row[j].toString().toUpperCase();
+                            } else {
+                                select.value = '';
+                            }
+                            // Función para colorear la celda según valor
+                            function colorearEstadoLlamada() {
+                                if(select.value === 'CONTACTADO') {
+                                    td.style.background = '#28a745';
+                                    td.style.color = '#fff';
+                                } else if(select.value === 'NO CONTACTADO') {
+                                    td.style.background = '#dc3545';
+                                    td.style.color = '#fff';
+                                } else {
+                                    td.style.background = '';
+                                    td.style.color = '';
+                                }
+                            }
+                            select.addEventListener('change', colorearEstadoLlamada);
+                            // Colorear al crear
+                            colorearEstadoLlamada();
+                            td.appendChild(select);
+                        } else if(j === 14 || j === 15 || j === 16) {
+                            // Hora 1er/2do/3er Intento: input manual solo hora y botón para agregar hora actual
+                            const input = document.createElement('input');
+                            input.type = 'text';
+                            input.style.width = '70px';
+                            input.placeholder = 'HH:MM';
+                            // Si el valor viene con fecha y hora, extraer solo la hora:minuto
+                            if(row[j] !== undefined && row[j] !== "") {
+                                let val = row[j].toString();
+                                let soloHora = val.match(/(\d{2}:\d{2})/);
+                                input.value = soloHora ? soloHora[1] : val;
+                            } else {
+                                input.value = '';
+                            }
+                            // Botón para agregar hora actual
+                            const btnHora = document.createElement('button');
+                            btnHora.type = 'button';
+                            btnHora.textContent = '⏰';
+                            btnHora.title = 'Agregar hora actual';
+                            btnHora.style.marginLeft = '4px';
+                            btnHora.style.padding = '2px 6px';
+                            btnHora.style.fontSize = '1em';
+                            btnHora.style.cursor = 'pointer';
+                            btnHora.onclick = function() {
+                                const ahora = new Date();
+                                const hh = String(ahora.getHours()).padStart(2,'0');
+                                const mm = String(ahora.getMinutes()).padStart(2,'0');
+                                input.value = `${hh}:${mm}`;
+                            };
+                            td.appendChild(input);
+                            td.appendChild(btnHora);
+                        } else if(j === 17) {
+                            // Observación editable
+                            const inputObs = document.createElement('input');
+                            inputObs.type = 'text';
+                            inputObs.style.width = '100%';
+                            inputObs.placeholder = 'Observación';
+                            inputObs.value = row[j] !== undefined ? row[j] : '';
+                            td.appendChild(inputObs);
+                        } else {
+                            td.textContent = row[j] !== undefined ? row[j] : '';
+                        }
+                        tr.appendChild(td);
+                    }
+                    tabla.appendChild(tr);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        exportBtn.addEventListener('click', async function() {
+            // Obtener encabezados
+            const headers = Array.from(tabla.rows[0].cells).map(th => th.textContent);
+            // Obtener datos de filas
+            let data = [];
+            for(let i=1; i<tabla.rows.length; i++) {
+                let row = [];
+                for(let j=0; j<tabla.rows[i].cells.length; j++) {
+                    let cell = tabla.rows[i].cells[j];
+                    // Si es select o input, tomar el valor
+                    let input = cell.querySelector('input, select');
+                    if(input) {
+                        row.push(input.value);
+                    } else {
+                        row.push(cell.textContent);
+                    }
+                }
+                // Solo exportar filas con algún dato
+                if(row.some(val => val && val.trim() !== '')) data.push(row);
+            }
+            // Agregar encabezados al inicio
+            data.unshift(headers);
+            // Nombre profesional (columna 2, índice 2)
+            let nombreProfesional = (data[1] && data[1][2]) ? data[1][2].toString().replace(/\s+/g,'_') : 'SIN_NOMBRE';
+            // Fecha actual
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth()+1).padStart(2,'0');
+            const dd = String(hoy.getDate()).padStart(2,'0');
+            const fecha = `${yyyy}${mm}${dd}`;
+            // Nombre archivo
+            const nombreArchivo = `BLOQUEO_${nombreProfesional}_${fecha}.xlsx`;
+
+            // --- ExcelJS ---
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Datos');
+
+            // Encabezados
+            worksheet.addRow(headers);
+            // Datos
+            for(let i=1; i<data.length; i++) {
+                worksheet.addRow(data[i]);
+            }
+
+            // Estilos encabezado
+            worksheet.getRow(1).eachCell(cell => {
+                cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Segoe UI', size: 12 };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0072C6' } };
+                cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF003366' } },
+                    bottom: { style: 'thin', color: { argb: 'FF003366' } },
+                    left: { style: 'thin', color: { argb: 'FF003366' } },
+                    right: { style: 'thin', color: { argb: 'FF003366' } }
+                };
+            });
+
+            // Estilos celdas y color en Estado de Llamada
+            worksheet.eachRow((row, rowNumber) => {
+                if(rowNumber === 1) return;
+                row.eachCell((cell, colNumber) => {
+                    cell.font = { name: 'Segoe UI', size: 11 };
+                    cell.alignment = { vertical: 'middle', wrapText: true };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFb0b0b0' } },
+                        bottom: { style: 'thin', color: { argb: 'FFb0b0b0' } },
+                        left: { style: 'thin', color: { argb: 'FFb0b0b0' } },
+                        right: { style: 'thin', color: { argb: 'FFb0b0b0' } }
+                    };
+                    // Columna Estado de Llamada (índice 14, columna 15 en Excel 1-based)
+                    if(colNumber === 14) {
+                        if(cell.value && cell.value.toString().toUpperCase() === 'CONTACTADO') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28a745' } };
+                            cell.font = { ...cell.font, color: { argb: 'FFFFFFFF' }, bold: true };
+                        } else if(cell.value && cell.value.toString().toUpperCase() === 'NO CONTACTADO') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFdc3545' } };
+                            cell.font = { ...cell.font, color: { argb: 'FFFFFFFF' }, bold: true };
+                        }
+                    }
+                });
+            });
+
+            // Ajustar ancho de columnas
+            worksheet.columns.forEach((col, idx) => {
+                let maxLen = headers[idx].length;
+                for(let i=1; i<data.length; i++) {
+                    const val = data[i][idx] ? data[i][idx].toString() : '';
+                    if(val.length > maxLen) maxLen = val.length;
+                }
+                col.width = Math.min(maxLen + 2, 30);
+            });
+
+            // Descargar archivo
+            const buffer = await workbook.xlsx.writeBuffer();
+            saveAs(new Blob([buffer], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), nombreArchivo);
+        });
+    }
+    setupBloqueoSNL('1');
+    setupBloqueoSNL('2');
+    setupBloqueoSNL('3');
+    setupBloqueoSNL('4');
+    setupBloqueoSNL('5');
+    </script>
+</body>
+    <!-- Nota rápida flotante -->
+    <button class="nota-flotante-btn" id="nota-flotante-btn" title="Abrir nota rápida">📝</button>
+    <div class="nota-flotante" id="nota-flotante" style="display:none;">
+        <button class="nota-flotante-cerrar" id="nota-flotante-cerrar" title="Cerrar">✖</button>
+        <textarea id="nota-flotante-texto" placeholder="Escribe una nota rápida aquí..."></textarea>
+    </div>
+    <script>
+    // Nota rápida flotante
+    (function(){
+        const btn = document.getElementById('nota-flotante-btn');
+        const nota = document.getElementById('nota-flotante');
+        const cerrar = document.getElementById('nota-flotante-cerrar');
+        const textarea = document.getElementById('nota-flotante-texto');
+        const STORAGE_KEY = 'nota_flotante_texto';
+        // Mostrar nota
+        btn.addEventListener('click', ()=>{
+            nota.style.display = 'flex';
+            textarea.focus();
+        });
+        // Cerrar nota
+        cerrar.addEventListener('click', ()=>{
+            nota.style.display = 'none';
+        });
+        // Guardar en localStorage
+        textarea.addEventListener('input', ()=>{
+            localStorage.setItem(STORAGE_KEY, textarea.value);
+        });
+        // Restaurar al cargar
+        textarea.value = localStorage.getItem(STORAGE_KEY) || '';
+    })();
+    </script>
+</html>
