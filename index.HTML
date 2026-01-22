@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Evaluación ISN</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #2d9cdb;
+      --secondary-color: #f39c12;
+      --success-color: #27ae60;
+      --danger-color: #e74c3c;
+      --warning-color: #f1c40f;
+      --dark-color: #2c3e50;
+      --light-color: #ecf0f1;
+      --bg-color: #f8f9fa;
+      --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --border-radius: 8px;
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg-color) 0%, #e3f2fd 100%);
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+    }
+
+    .header h1 {
+      color: var(--dark-color);
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header .subtitle {
+      color: #7f8c8d;
+      font-size: 1.1rem;
+    }
+
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      transition: var(--transition);
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      margin-bottom: 5px;
+    }
+
+    .stat-card .stat-label {
+      color: #7f8c8d;
+      font-size: 0.9rem;
+    }
+
+    .section-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      margin-bottom: 30px;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .section-card:hover {
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .section-header {
+      background: linear-gradient(135deg, var(--primary-color), #3498db);
+      color: white;
+      padding: 15px 20px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-content {
+      padding: 20px;
+    }
+
+    h2 {
+      color: var(--dark-color);
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-bottom: 20px;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    th, td {
+      padding: 12px 8px;
+      text-align: center;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    th {
+      background: linear-gradient(135deg, var(--primary-color), #3498db);
+      color: #fff;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    input[type="number"], input[type="date"] {
+      width: 100px;
+      padding: 8px;
+      border: 2px solid #e9ecef;
+      border-radius: 4px;
+      transition: var(--transition);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    input[type="date"] {
+      width: 140px;
+    }
+
+    input[type="number"]:focus, input[type="date"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(45, 156, 219, 0.1);
+    }
+
+    .resaltado {
+      background: linear-gradient(135deg, #eafaf1, #d5f4e6);
+      font-weight: bold;
+      color: var(--success-color);
+      font-size: 1.1rem;
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--primary-color), #3498db);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: var(--transition);
+      margin-right: 8px;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 156, 219, 0.3);
+    }
+
+    .eliminar-btn {
+      background: linear-gradient(135deg, var(--danger-color), #c0392b);
+      padding: 8px 12px;
+      font-size: 0.8rem;
+    }
+
+    .eliminar-btn:hover {
+      box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+    }
+
+    .export-btn {
+      background: linear-gradient(135deg, var(--success-color), #2ecc71);
+      margin-bottom: 15px;
+    }
+
+    .export-btn:hover {
+      box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+    }
+
+    canvas {
+      max-height: 200px;
+      display: block;
+      margin: 20px auto;
+      border-radius: var(--border-radius);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .chart-container {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      margin-top: 20px;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      
+      .header h1 {
+        font-size: 2rem;
+      }
+      
+      .dashboard-stats {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+      }
+      
+      table {
+        font-size: 0.85rem;
+      }
+      
+      th, td {
+        padding: 8px 4px;
+      }
+      
+      input[type="number"], input[type="date"] {
+        width: 60px;
+        padding: 6px;
+      }
+      
+      input[type="date"] {
+        width: 100px;
+      }
+      
+      button {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+      }
+    }
+
+    /* Animaciones de entrada */
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: relative;
+      cursor: help;
+    }
+
+    .tooltip::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--dark-color);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+      z-index: 1000;
+    }
+
+    .tooltip:hover::after {
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 Evaluación Diaria - ISN</h1>
+  <p class="subtitle">Sistema de seguimiento y análisis de encuestas de satisfacción</p>
+  <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto;">
+    <h3 style="color: #2c3e50; margin-bottom: 10px;">🎯 Net Promoter Score (NPS)</h3>
+    <p style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 8px;">
+      <strong>Clasificación:</strong> 
+      🟢 Promotores (6-7) | 🟡 Pasivos (5) | 🔴 Detractores (1-4)
+    </p>
+    <p style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 8px;">
+      <strong>Fórmula:</strong> NPS = (% Promotores - % Detractores)
+    </p>
+    <p style="font-size: 0.9rem; color: #7f8c8d;">
+      <strong>Interpretación:</strong> 
+      🟢 Excelente (70+) | 🟡 Bueno (50-69) | 🟠 Regular (0-49) | 🔴 Crítico (-100 a -1)
+    </p>
+  </div>
+  
+  <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto; border-left: 4px solid #4caf50;">
+    <h3 style="color: #2e7d32; margin-bottom: 10px;">📅 Funcionalidades de Fechas</h3>
+    <p style="font-size: 0.9rem; color: #2e7d32; margin-bottom: 8px;">
+      <strong>📝 Registro:</strong> Puedes seleccionar cualquier fecha para ingresar datos históricos
+    </p>
+    <p style="font-size: 0.9rem; color: #2e7d32; margin-bottom: 8px;">
+      <strong>✏️ Edición:</strong> Haz clic en el botón "✏️" del historial para editar registros existentes
+    </p>
+    <p style="font-size: 0.9rem; color: #2e7d32;">
+      <strong>🧹 Limpieza:</strong> Usa el botón "Limpiar" para vaciar el formulario actual
+    </p>
+  </div>
+</div>
+
+<div class="dashboard-stats" id="dashboard-stats">
+  <!-- Las estadísticas se cargarán dinámicamente -->
+</div>
+
+<div id="contenedor"></div>
+
+<script>
+const graficos = {};
+
+function guardar(nombre) {
+  const campoFecha = document.getElementById(`fecha-${nombre}`);
+  // Ya no forzamos la fecha actual, permitimos que el usuario elija cualquier fecha
+  const fecha = campoFecha.value;
+  if (!fecha) return alert("Debes seleccionar una fecha");
+
+  // Validar que se hayan ingresado datos
+  let hayDatos = false;
+  for (let i = 1; i <= 7; i++) {
+    const val = parseInt(document.getElementById(`${nombre}-n${i}`).value) || 0;
+    if (val > 0) {
+      hayDatos = true;
+      break;
+    }
+  }
+  
+  if (!hayDatos) {
+    alert("Debes ingresar al menos una evaluación antes de guardar.");
+    return;
+  }
+
+  // Guardar los valores actuales en localStorage para persistencia diaria
+  let notasDia = {};
+  for (let i = 1; i <= 7; i++) {
+    notasDia[`n${i}`] = document.getElementById(`${nombre}-n${i}`).value;
+  }
+  localStorage.setItem(`notas-dia-${nombre}-${fecha}`, JSON.stringify(notasDia));
+
+  let total = 0, encuestas = 0;
+  let detractores = 0, pasivos = 0, promotores = 0;
+  
+  for (let i = 1; i <= 7; i++) {
+    const val = parseInt(document.getElementById(`${nombre}-n${i}`).value) || 0;
+    total += val * i;
+    encuestas += val;
+    
+    // Clasificación NPS
+    if (i >= 1 && i <= 4) {
+      detractores += val; // Detractores (1-4)
+    } else if (i === 5) {
+      pasivos += val; // Pasivos (5)
+    } else if (i >= 6 && i <= 7) {
+      promotores += val; // Promotores (6-7)
+    }
+  }
+
+  const promedio = encuestas === 0 ? 0 : (total / encuestas).toFixed(2);
+  const porcentaje = encuestas === 0 ? "0%" : Math.round((promedio / 7) * 100) + "%";
+  
+  // Cálculo del NPS
+  let nps = 0;
+  if (encuestas > 0) {
+    const porcentajePromotores = (promotores / encuestas) * 100;
+    const porcentajeDetractores = (detractores / encuestas) * 100;
+    nps = Math.round(porcentajePromotores - porcentajeDetractores);
+  }
+
+  // Buscar si ya existe un registro para la fecha actual en el historial
+  const historial = obtenerHistorial(nombre);
+  const idx = historial.findIndex(fila => fila.fecha === fecha);
+
+  if (idx !== -1) {
+    // Si existe, actualiza el registro existente
+    historial[idx] = { fecha, total, encuestas, promedio: porcentaje, nps, promotores, pasivos, detractores };
+  } else {
+    // Si no existe, agrega uno nuevo
+    historial.push({ fecha, total, encuestas, promedio: porcentaje, nps, promotores, pasivos, detractores });
+  }
+
+  // Ordenar por fecha (más reciente primero)
+  historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+  localStorage.setItem(`historial-${nombre}`, JSON.stringify(historial));
+  renderizarHistorial(nombre, historial);
+  actualizarGrafico(nombre);
+  actualizarDashboard();
+
+  // Mostrar mensaje de éxito
+  const boton = event.target;
+  const textoOriginal = boton.innerHTML;
+  boton.innerHTML = "✅ Guardado";
+  boton.style.background = "linear-gradient(135deg, #27ae60, #2ecc71)";
+  
+  setTimeout(() => {
+    boton.innerHTML = textoOriginal;
+    boton.style.background = "linear-gradient(135deg, var(--primary-color), #3498db)";
+  }, 2000);
+}
+
+// Al cargar el formulario, restaurar las notas del día si existen
+function crearFormulario(nombre) {
+  const contenedor = document.getElementById("contenedor");
+  const seccion = document.createElement("section");
+  seccion.className = "section-card fade-in";
+  
+  const icono = nombre === "SNL" ? "🎯" : "📈";
+  const nombreCompleto = nombre === "SNL" ? "Satisfacción Nivel de Servicio" : "Encuestas de Percepción";
+  
+  seccion.innerHTML = `
+    <div class="section-header">
+      <span>${icono}</span>
+      <span>${nombreCompleto} (${nombre})</span>
+    </div>
+    <div class="section-content">
+      <table>
+        <thead>
+          <tr>
+            <th class="tooltip" data-tooltip="Fecha de evaluación">📅 Fecha</th>
+            ${[1,2,3,4,5,6,7].map(n => `<th class="tooltip" data-tooltip="Calificación ${n}">${n}</th>`).join("")}
+            <th class="tooltip" data-tooltip="Suma total ponderada">Total</th>
+            <th class="tooltip" data-tooltip="Número de encuestas">Total Enc.</th>
+            <th class="tooltip" data-tooltip="Promedio porcentual">Promedio</th>
+            <th class="tooltip" data-tooltip="Net Promoter Score (NPS)">🎯 NPS</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="date" id="fecha-${nombre}"></td>
+            ${[1,2,3,4,5,6,7].map(n => `<td><input type="number" min="0" value="0" id="${nombre}-n${n}" oninput="calcularTiempoReal('${nombre}')"></td>`).join("")}
+            <td class="resaltado" id="total-${nombre}">0</td>
+            <td class="resaltado" id="encuestas-${nombre}">0</td>
+            <td class="resaltado" id="promedio-${nombre}">0%</td>
+            <td class="resaltado" id="nps-${nombre}">0</td>
+            <td><button onclick="guardar('${nombre}')">💾 Guardar</button><button onclick="limpiarFormulario('${nombre}')" style="background: linear-gradient(135deg, #95a5a6, #7f8c8d); margin-left: 5px;">🧹 Limpiar</button></td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div style="margin: 20px 0;">
+        <h4>🗂 Historial ${nombreCompleto}</h4>
+        <button class="export-btn" onclick="exportarExcel('historial-${nombre}', 'Historial_${nombre}')">📤 Exportar a Excel</button>
+        <button onclick="mostrarEstadisticas('${nombre}')">📊 Ver Estadísticas</button>
+        <button onclick="limpiarHistorial('${nombre}')" style="background: linear-gradient(135deg, #f39c12, #e67e22);">🗑️ Limpiar Historial</button>
+      </div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>📅 Fecha</th>
+            <th>📊 Total</th>
+            <th>📋 Encuestas</th>
+            <th>📈 Promedio</th>
+            <th>🎯 NPS</th>
+            <th>✏️ Editar</th>
+            <th>❌ Eliminar</th>
+          </tr>
+        </thead>
+        <tbody id="historial-${nombre}"></tbody>
+      </table>
+      
+      <div class="chart-container">
+        <canvas id="grafico-${nombre}"></canvas>
+      </div>
+    </div>
+  `;
+  contenedor.appendChild(seccion);
+
+  // Asignar fecha actual por defecto, pero permitir cambiarla
+  const campoFecha = document.getElementById(`fecha-${nombre}`);
+  if (campoFecha) {
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dd = String(hoy.getDate()).padStart(2, '0');
+    campoFecha.value = `${yyyy}-${mm}-${dd}`;
+
+    // Agregar evento para cargar datos cuando se cambie la fecha
+    campoFecha.addEventListener('change', function() {
+      cargarDatosFecha(nombre, this.value);
+    });
+
+    // Restaurar notas del día actual si existen
+    const notasGuardadas = localStorage.getItem(`notas-dia-${nombre}-${campoFecha.value}`);
+    if (notasGuardadas) {
+      const notas = JSON.parse(notasGuardadas);
+      for (let i = 1; i <= 7; i++) {
+        document.getElementById(`${nombre}-n${i}`).value = notas[`n${i}`] || 0;
+      }
+    }
+  }
+
+  cargarHistorial(nombre);
+  calcularTiempoReal(nombre);
+}
+
+// Nueva función para cargar datos cuando se cambia la fecha
+function cargarDatosFecha(nombre, fecha) {
+  // Limpiar campos actuales
+  for (let i = 1; i <= 7; i++) {
+    document.getElementById(`${nombre}-n${i}`).value = 0;
+  }
+  
+  // Cargar datos guardados para esta fecha si existen
+  const notasGuardadas = localStorage.getItem(`notas-dia-${nombre}-${fecha}`);
+  if (notasGuardadas) {
+    const notas = JSON.parse(notasGuardadas);
+    for (let i = 1; i <= 7; i++) {
+      document.getElementById(`${nombre}-n${i}`).value = notas[`n${i}`] || 0;
+    }
+  }
+  
+  // Recalcular totales
+  calcularTiempoReal(nombre);
+}
+
+// Función para limpiar el formulario actual
+function limpiarFormulario(nombre) {
+  // Limpiar todos los campos numéricos
+  for (let i = 1; i <= 7; i++) {
+    document.getElementById(`${nombre}-n${i}`).value = 0;
+  }
+  
+  // Recalcular totales
+  calcularTiempoReal(nombre);
+}
+
+// Función para editar un registro existente
+function editarRegistro(nombre, fecha) {
+  // Cambiar la fecha en el formulario
+  document.getElementById(`fecha-${nombre}`).value = fecha;
+  
+  // Cargar los datos de esa fecha
+  cargarDatosFecha(nombre, fecha);
+  
+  // Hacer scroll al formulario
+  document.getElementById(`fecha-${nombre}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+  
+  // Opcional: mostrar mensaje informativo
+  alert(`Editando registro del ${fecha}. Modifica los valores y presiona "Guardar" para actualizar.`);
+}
+
+function obtenerHistorial(nombre) {
+  return JSON.parse(localStorage.getItem(`historial-${nombre}`)) || [];
+}
+
+function renderizarHistorial(nombre, historial) {
+  const cuerpo = document.getElementById(`historial-${nombre}`);
+  cuerpo.innerHTML = "";
+  
+  if (historial.length === 0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="6" style="text-align: center; color: #7f8c8d; font-style: italic;">No hay registros aún</td>`;
+    cuerpo.appendChild(tr);
+    return;
+  }
+  
+  historial.forEach((fila, index) => {
+    const tr = document.createElement("tr");
+    // Corregir el desfase de fecha agregando la zona horaria local
+    const fechaParts = fila.fecha.split('-');
+    const fechaLocal = new Date(fechaParts[0], fechaParts[1] - 1, fechaParts[2]);
+    const fechaFormateada = fechaLocal.toLocaleDateString('es-ES', { 
+      weekday: 'short', 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+    
+    // Determinar color del promedio
+    const porcentajeNum = parseFloat(fila.promedio);
+    let colorPromedio = '#27ae60';
+    if (porcentajeNum < 60) colorPromedio = '#e74c3c';
+    else if (porcentajeNum < 80) colorPromedio = '#f39c12';
+    
+    // Determinar color del NPS
+    const npsValue = fila.nps || 0;
+    let colorNPS = '#27ae60';
+    if (npsValue < 0) colorNPS = '#e74c3c';
+    else if (npsValue < 50) colorNPS = '#f39c12';
+    
+    tr.innerHTML = `
+      <td>${fechaFormateada}</td>
+      <td>${fila.total}</td>
+      <td>${fila.encuestas}</td>
+      <td style="color: ${colorPromedio}; font-weight: bold;">${fila.promedio}</td>
+      <td style="color: ${colorNPS}; font-weight: bold;" class="tooltip" data-tooltip="Promotores: ${fila.promotores || 0} | Pasivos: ${fila.pasivos || 0} | Detractores: ${fila.detractores || 0}">${npsValue}</td>
+      <td><button onclick="editarRegistro('${nombre}', '${fila.fecha}')" style="background: linear-gradient(135deg, #3498db, #2980b9); padding: 6px 10px; font-size: 0.8rem;">✏️</button></td>
+      <td><button class="eliminar-btn" onclick="confirmarEliminacion('${nombre}', ${index})">🗑</button></td>
+    `;
+    cuerpo.appendChild(tr);
+  });
+}
+
+function eliminarFila(nombre, index) {
+  const historial = obtenerHistorial(nombre);
+  historial.splice(index, 1);
+  localStorage.setItem(`historial-${nombre}`, JSON.stringify(historial));
+  renderizarHistorial(nombre, historial);
+  actualizarGrafico(nombre);
+  actualizarDashboard();
+}
+
+function cargarHistorial(nombre) {
+  const historial = obtenerHistorial(nombre);
+  renderizarHistorial(nombre, historial);
+  actualizarGrafico(nombre);
+  actualizarDashboard();
+}
+
+function actualizarGrafico(nombre) {
+  const historial = obtenerHistorial(nombre);
+  const labels = historial.map(fila => fila.fecha);
+  const datos = historial.map(fila => parseFloat(fila.promedio));
+  const promedioGeneral = datos.length > 0 ? (datos.reduce((a, b) => a + b, 0) / datos.length).toFixed(2) : 0;
+  const lineaProm = datos.map(() => promedioGeneral);
+
+  const ctx = document.getElementById(`grafico-${nombre}`).getContext("2d");
+
+  if (graficos[nombre]) {
+    graficos[nombre].data.labels = labels;
+    graficos[nombre].data.datasets[0].data = datos;
+    graficos[nombre].data.datasets[1].data = lineaProm;
+    graficos[nombre].update();
+  } else {
+    graficos[nombre] = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Promedio diario (%)",
+            data: datos,
+            backgroundColor: "rgba(45,156,219,0.2)",
+            borderColor: "#2d9cdb",
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: "Promedio general",
+            data: lineaProm,
+            borderColor: "#f39c12",
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false,
+            tension: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          datalabels: {
+            display: true,
+            color: "#000",
+            align: "top",
+            formatter: value => value + "%"
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { callback: val => val + "%" }
+          }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+}
+
+function exportarExcel(idTabla, nombreArchivo) {
+  const tabla = document.getElementById(idTabla);
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(tabla);
+  XLSX.utils.book_append_sheet(wb, ws, "Datos");
+  XLSX.writeFile(wb, `${nombreArchivo}.xlsx`);
+}
+
+// Nuevas funciones mejoradas
+function calcularTiempoReal(nombre) {
+  let total = 0, encuestas = 0;
+  let detractores = 0, pasivos = 0, promotores = 0;
+  
+  for (let i = 1; i <= 7; i++) {
+    const val = parseInt(document.getElementById(`${nombre}-n${i}`).value) || 0;
+    total += val * i;
+    encuestas += val;
+    
+    // Clasificación NPS
+    if (i >= 1 && i <= 4) {
+      detractores += val; // Detractores (1-4)
+    } else if (i === 5) {
+      pasivos += val; // Pasivos (5)
+    } else if (i >= 6 && i <= 7) {
+      promotores += val; // Promotores (6-7)
+    }
+  }
+
+  const promedio = encuestas === 0 ? 0 : (total / encuestas).toFixed(2);
+  const porcentaje = encuestas === 0 ? "0%" : Math.round((promedio / 7) * 100) + "%";
+  
+  // Cálculo del NPS
+  let nps = 0;
+  if (encuestas > 0) {
+    const porcentajePromotores = (promotores / encuestas) * 100;
+    const porcentajeDetractores = (detractores / encuestas) * 100;
+    nps = Math.round(porcentajePromotores - porcentajeDetractores);
+  }
+
+  document.getElementById(`total-${nombre}`).textContent = total;
+  document.getElementById(`encuestas-${nombre}`).textContent = encuestas;
+  document.getElementById(`promedio-${nombre}`).textContent = porcentaje;
+  document.getElementById(`nps-${nombre}`).textContent = nps;
+  
+  // Actualizar color basado en el promedio
+  const promedioElement = document.getElementById(`promedio-${nombre}`);
+  const porcentajeNum = parseInt(porcentaje);
+  if (porcentajeNum >= 80) {
+    promedioElement.style.background = 'linear-gradient(135deg, #d5f4e6, #a2d2a5)';
+    promedioElement.style.color = '#27ae60';
+  } else if (porcentajeNum >= 60) {
+    promedioElement.style.background = 'linear-gradient(135deg, #fef9e7, #f7dc6f)';
+    promedioElement.style.color = '#f39c12';
+  } else {
+    promedioElement.style.background = 'linear-gradient(135deg, #fadbd8, #f1948a)';
+    promedioElement.style.color = '#e74c3c';
+  }
+  
+  // Actualizar color del NPS
+  const npsElement = document.getElementById(`nps-${nombre}`);
+  if (nps >= 50) {
+    npsElement.style.background = 'linear-gradient(135deg, #d5f4e6, #a2d2a5)';
+    npsElement.style.color = '#27ae60';
+  } else if (nps >= 0) {
+    npsElement.style.background = 'linear-gradient(135deg, #fef9e7, #f7dc6f)';
+    npsElement.style.color = '#f39c12';
+  } else {
+    npsElement.style.background = 'linear-gradient(135deg, #fadbd8, #f1948a)';
+    npsElement.style.color = '#e74c3c';
+  }
+}
+
+function actualizarDashboard() {
+  const historialSNL = obtenerHistorial("SNL");
+  const historialEP = obtenerHistorial("EP");
+  
+  // Calcular estadísticas generales
+  const totalDiasSNL = historialSNL.length;
+  const totalDiasEP = historialEP.length;
+  
+  const promediosSNL = historialSNL.map(h => parseFloat(h.promedio));
+  const promediosEP = historialEP.map(h => parseFloat(h.promedio));
+  
+  // Calcular NPS promedio
+  const npsSNL = historialSNL.map(h => h.nps || 0);
+  const npsEP = historialEP.map(h => h.nps || 0);
+  
+  const promedioGeneralSNL = promediosSNL.length > 0 ? 
+    (promediosSNL.reduce((a, b) => a + b, 0) / promediosSNL.length).toFixed(1) : "0";
+  const promedioGeneralEP = promediosEP.length > 0 ? 
+    (promediosEP.reduce((a, b) => a + b, 0) / promediosEP.length).toFixed(1) : "0";
+  
+  const npsPromedioSNL = npsSNL.length > 0 ? 
+    Math.round(npsSNL.reduce((a, b) => a + b, 0) / npsSNL.length) : 0;
+  const npsPromedioEP = npsEP.length > 0 ? 
+    Math.round(npsEP.reduce((a, b) => a + b, 0) / npsEP.length) : 0;
+  
+  const totalEncuestasSNL = historialSNL.reduce((sum, h) => sum + parseInt(h.encuestas), 0);
+  const totalEncuestasEP = historialEP.reduce((sum, h) => sum + parseInt(h.encuestas), 0);
+  
+  const dashboard = document.getElementById('dashboard-stats');
+  dashboard.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-number">${totalDiasSNL}</div>
+      <div class="stat-label">📊 Días SNL</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">${promedioGeneralSNL}%</div>
+      <div class="stat-label">🎯 Promedio SNL</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">${npsPromedioSNL}</div>
+      <div class="stat-label">🎯 NPS SNL</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">${totalDiasEP}</div>
+      <div class="stat-label">📈 Días EP</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">${promedioGeneralEP}%</div>
+      <div class="stat-label">📋 Promedio EP</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">${npsPromedioEP}</div>
+      <div class="stat-label">🎯 NPS EP</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">${totalEncuestasSNL + totalEncuestasEP}</div>
+      <div class="stat-label">📝 Total Encuestas</div>
+    </div>
+  `;
+}
+
+function mostrarEstadisticas(nombre) {
+  const historial = obtenerHistorial(nombre);
+  if (historial.length === 0) {
+    alert("No hay datos suficientes para mostrar estadísticas.");
+    return;
+  }
+  
+  const promedios = historial.map(h => parseFloat(h.promedio));
+  const encuestas = historial.map(h => parseInt(h.encuestas));
+  const npsValues = historial.map(h => h.nps || 0);
+  
+  const promedio = (promedios.reduce((a, b) => a + b, 0) / promedios.length).toFixed(2);
+  const maximo = Math.max(...promedios).toFixed(2);
+  const minimo = Math.min(...promedios).toFixed(2);
+  const totalEncuestas = encuestas.reduce((a, b) => a + b, 0);
+  const promedioEncuestas = (totalEncuestas / encuestas.length).toFixed(1);
+  
+  // Estadísticas del NPS
+  const npsPromedio = npsValues.length > 0 ? Math.round(npsValues.reduce((a, b) => a + b, 0) / npsValues.length) : 0;
+  const npsMaximo = npsValues.length > 0 ? Math.max(...npsValues) : 0;
+  const npsMinimo = npsValues.length > 0 ? Math.min(...npsValues) : 0;
+  
+  // Calcular totales de clasificación NPS
+  let totalPromotores = 0, totalPasivos = 0, totalDetractores = 0;
+  historial.forEach(h => {
+    totalPromotores += h.promotores || 0;
+    totalPasivos += h.pasivos || 0;
+    totalDetractores += h.detractores || 0;
+  });
+  
+  // Calcular tendencia (últimos 5 días vs anteriores)
+  let tendencia = "📊 Estable";
+  if (historial.length >= 5) {
+    const ultimos5 = promedios.slice(-5);
+    const anteriores = promedios.slice(0, -5);
+    if (anteriores.length > 0) {
+      const promedioUltimos = ultimos5.reduce((a, b) => a + b, 0) / ultimos5.length;
+      const promedioAnteriores = anteriores.reduce((a, b) => a + b, 0) / anteriores.length;
+      
+      if (promedioUltimos > promedioAnteriores + 2) tendencia = "📈 Mejorando";
+      else if (promedioUltimos < promedioAnteriores - 2) tendencia = "📉 Declinando";
+    }
+  }
+  
+  // Determinar clasificación NPS
+  let clasificacionNPS = "🔴 Crítico";
+  if (npsPromedio >= 70) clasificacionNPS = "🟢 Excelente";
+  else if (npsPromedio >= 50) clasificacionNPS = "🟡 Bueno";
+  else if (npsPromedio >= 0) clasificacionNPS = "🟠 Regular";
+  
+  alert(`📊 Estadísticas de ${nombre}:\n\n` +
+        `📈 Promedio General: ${promedio}%\n` +
+        `🔝 Máximo: ${maximo}%\n` +
+        `🔻 Mínimo: ${minimo}%\n` +
+        `📝 Total Encuestas: ${totalEncuestas}\n` +
+        `📊 Promedio Encuestas/día: ${promedioEncuestas}\n` +
+        `📊 Días registrados: ${historial.length}\n` +
+        `${tendencia}\n\n` +
+        `🎯 === ANÁLISIS NPS ===\n` +
+        `🎯 NPS Promedio: ${npsPromedio} ${clasificacionNPS}\n` +
+        `🔝 NPS Máximo: ${npsMaximo}\n` +
+        `🔻 NPS Mínimo: ${npsMinimo}\n` +
+        `🟢 Total Promotores (6-7): ${totalPromotores}\n` +
+        `🟡 Total Pasivos (5): ${totalPasivos}\n` +
+        `🔴 Total Detractores (1-4): ${totalDetractores}`);
+}
+
+function limpiarHistorial(nombre) {
+  if (confirm(`¿Estás seguro de que quieres eliminar todo el historial de ${nombre}? Esta acción no se puede deshacer.`)) {
+    localStorage.removeItem(`historial-${nombre}`);
+    renderizarHistorial(nombre, []);
+    actualizarGrafico(nombre);
+    actualizarDashboard();
+    alert("Historial eliminado correctamente.");
+  }
+}
+
+function confirmarEliminacion(nombre, index) {
+  if (confirm("¿Estás seguro de que quieres eliminar este registro?")) {
+    eliminarFila(nombre, index);
+  }
+}
+
+function actualizarGrafico(nombre) {
+  const historial = obtenerHistorial(nombre);
+  const labels = historial.map(fila => {
+    // Corregir el desfase de fecha
+    const fechaParts = fila.fecha.split('-');
+    const fecha = new Date(fechaParts[0], fechaParts[1] - 1, fechaParts[2]);
+    return fecha.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+  }).reverse(); // Mostrar cronológicamente
+  
+  const datos = historial.map(fila => parseFloat(fila.promedio)).reverse();
+  const promedioGeneral = datos.length > 0 ? (datos.reduce((a, b) => a + b, 0) / datos.length).toFixed(2) : 0;
+  const lineaProm = datos.map(() => promedioGeneral);
+
+  const ctx = document.getElementById(`grafico-${nombre}`).getContext("2d");
+
+  if (graficos[nombre]) {
+    graficos[nombre].data.labels = labels;
+    graficos[nombre].data.datasets[0].data = datos;
+    graficos[nombre].data.datasets[1].data = lineaProm;
+    graficos[nombre].options.plugins.title.text = `📊 Evolución ${nombre} - Promedio: ${promedioGeneral}%`;
+    graficos[nombre].update();
+  } else {
+    graficos[nombre] = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Promedio diario (%)",
+            data: datos,
+            backgroundColor: "rgba(45,156,219,0.2)",
+            borderColor: "#2d9cdb",
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: "#2d9cdb",
+            pointBorderColor: "#fff",
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8
+          },
+          {
+            label: `Promedio general (${promedioGeneral}%)`,
+            data: lineaProm,
+            borderColor: "#f39c12",
+            borderDash: [8, 4],
+            pointRadius: 0,
+            fill: false,
+            tension: 0,
+            borderWidth: 3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: `📊 Evolución ${nombre} - Promedio: ${promedioGeneral}%`,
+            font: {
+              size: 16,
+              weight: 'bold'
+            },
+            color: '#2c3e50'
+          },
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 20,
+              font: {
+                size: 12
+              }
+            }
+          },
+          datalabels: {
+            display: function(context) {
+              return context.datasetIndex === 0; // Solo mostrar en la línea principal
+            },
+            color: "#2c3e50",
+            align: "top",
+            offset: 10,
+            formatter: value => value + "%",
+            font: {
+              weight: 'bold',
+              size: 11
+            },
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            borderColor: '#2d9cdb',
+            borderRadius: 4,
+            borderWidth: 1,
+            padding: 4
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#fff',
+            bodyColor: '#fff',
+            borderColor: '#2d9cdb',
+            borderWidth: 1,
+            cornerRadius: 8,
+            displayColors: true,
+            callbacks: {
+              title: function(tooltipItems) {
+                return `📅 ${tooltipItems[0].label}`;
+              },
+              label: function(context) {
+                if (context.datasetIndex === 0) {
+                  return `📈 Promedio: ${context.parsed.y}%`;
+                } else {
+                  return `📊 Promedio general: ${context.parsed.y}%`;
+                }
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { 
+              callback: val => val + "%",
+              color: '#7f8c8d',
+              font: {
+                size: 11
+              }
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.1)'
+            }
+          },
+          x: {
+            ticks: {
+              color: '#7f8c8d',
+              font: {
+                size: 11
+              }
+            },
+            grid: {
+              display: false
+            }
+          }
+        },
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+}
+
+// Inicialización cuando se carga la página
+document.addEventListener('DOMContentLoaded', function() {
+  actualizarDashboard();
+});
+
+crearFormulario("SNL");
+crearFormulario("EP");
+</script>
+
+</body>
+</html>
